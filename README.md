@@ -1,54 +1,169 @@
-# React + TypeScript + Vite
+React Todo App with Vitest & Testing Library
+This is a simple React Todo app with testing configured using Vitest and React Testing Library.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Project Setup
+To set up the project, follow these steps:
 
-Currently, two official plugins are available:
+1. Create the Project
+   Run the following command to create a new React project using Vite:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+bash
+Copy code
+npm create vite@latest
+After running this command, provide a project name and select the following options:
 
-## Expanding the ESLint configuration
+React: Select React template
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+TypeScript: Choose TypeScript for testing.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+2. Install Dependencies
+   Once the project is created, navigate to the project directory and install all necessary dependencies using the following command:
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+bash
+Copy code
+npm install
+Then, install the required testing libraries:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+bash
+Copy code
+npm i -D vitest
+npm i -D @testing-library/react
+npm i -D jsdom
+npm i -D @testing-library/jest-dom
+npm i -D @types/jest
+npm i @testing-library/dom 3. Update package.json
+Open your package.json file and add the following script in the scripts section:
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+json
+Copy code
+"scripts": {
+"test:ui": "vitest --ui"
+} 4. Set Up Vitest Configuration
+Create a vitest.config.js file in the root of your project with the following content:
+
+js
+Copy code
+import { defineConfig } from "vitest/config";
+export default defineConfig({
+test: {
+environment: "jsdom",
+globals: true,
+setupFiles: "tests/setup.ts",
+},
+}); 5. Create Setup File
+Create a setup.ts file in the tests folder (in the root directory) and add the following import statement:
+
+ts
+Copy code
+import "@testing-library/jest-dom"; 6. Create the Components Folder
+In the src directory, create a components folder where you will store your React components.
+
+7. Testing with Vitest and React Testing Library
+   Now, you are ready to test your React components using Vitest and React Testing Library.
+
+Testing a Component
+When writing tests for React components, follow these steps:
+
+Import all necessary testing libraries.
+
+Describe your test suite with a meaningful name.
+
+Write individual test cases using it or test blocks.
+
+Render the component in the DOM.
+
+Select the DOM elements you want to test.
+
+Assert the expected results.
+
+Example Test Code
+Here is an example of a basic test suite for your Todo app:
+
+tsx
+Copy code
+import React from "react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import TodoList from "../../src/components/TodoList";
+
+describe("TodoList", () => {
+it("renders TodoList with an input and a button", () => {
+render(<TodoList />);
+
+    expect(screen.getByPlaceholderText("Enter new todo")).toBeInTheDocument();
+    expect(screen.getByText("Add Todo")).toBeInTheDocument();
+
+});
+
+it("can add a todo item", async () => {
+render(<TodoList />);
+
+    const input = screen.getByPlaceholderText("Enter new todo");
+    const button = screen.getByText("Add Todo");
+
+    await userEvent.type(input, "New Todo");
+    await userEvent.click(button);
+
+    expect(screen.getByText("New Todo")).toBeInTheDocument();
+
+});
+
+it("can mark a todo as completed", async () => {
+render(<TodoList />);
+
+    const input = screen.getByPlaceholderText("Enter new todo");
+    const button = screen.getByText("Add Todo");
+
+    await userEvent.type(input, "New Todo");
+    await userEvent.click(button);
+
+    const checkbox = screen.getByRole("checkbox");
+    expect(checkbox).not.toBeChecked();
+
+    await userEvent.click(checkbox);
+    expect(checkbox).toBeChecked();
+
+    const todoItem = screen.getByText("New Todo");
+    expect(todoItem).toHaveStyle("text-decoration: line-through");
+
+});
+
+it("can delete a todo item", async () => {
+render(<TodoList />);
+
+    const input = screen.getByPlaceholderText("Enter new todo");
+    const button = screen.getByText("Add Todo");
+
+    await userEvent.type(input, "New Todo");
+    await userEvent.click(button);
+
+    const deleteButton = screen.getByText("Delete");
+    await userEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(screen.queryByText("New Todo")).not.toBeInTheDocument();
+    });
+
+});
+});
+Accessibility in Testing
+getByRole
+getByRole is a query method used to find DOM elements by their ARIA role. It is recommended to use getByRole for accessible querying of elements, as it works with screen readers and other assistive technologies.
+
+js
+Copy code
+const button = screen.getByRole('button');
+Purpose of Queries
+getBy: Use when the element must be found in the DOM.
+
+queryBy: Use when the element may or may not be found in the DOM.
+
+findBy: Use when you are dealing with asynchronous elements that appear after some delay.
+
+getAllBy: Use for handling multiple elements of the same type.
+
+queryAllBy: Use when multiple elements may or may not exist.
+
+findAllBy: Use when multiple elements appear asynchronously.
+
+This README.md should help you set up and test your React Todo app, and ensure your components are tested properly using Vitest and React Testing Library.
